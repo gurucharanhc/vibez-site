@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vibez – Vibe-Aware Travel Discovery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="Vibez is a multimodal, vibe-aware travel discovery engine that turns mood into destinations using images, emotions, and LLM-powered retrieval."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-alt: #0b1020;
+      --bg-soft: #12182b;
+      --accent: #ff7a59;
+      --accent-soft: rgba(255, 122, 89, 0.12);
+      --accent-2: #7b5cff;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --card-radius: 18px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.7);
+      --max-width: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top left, #1f2937 0, #020617 42%, #020617 100%);
+      color: var(--text);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      line-height: 1.6;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Layout helpers */
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .section {
+      padding: 4rem 0;
+    }
+
+    @media (min-width: 900px) {
+      .section {
+        padding: 5rem 0;
+      }
+    }
+
+    /* Navbar */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(to bottom, rgba(2,6,23,0.96), rgba(2,6,23,0.8), transparent);
+      border-bottom: 1px solid rgba(15,23,42,0.7);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 1rem 1.5rem 0.9rem;
+      gap: 1.5rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: conic-gradient(from 220deg, #ff7a59, #f97316, #facc15, #22c55e, #0ea5e9, #6366f1, #ec4899, #ff7a59);
+      padding: 2px;
+      box-shadow: 0 0 25px rgba(129, 140, 248, 0.6);
+    }
+
+    .logo-mark-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: #020617;
+    }
+
+    .logo-text-main {
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
+
+    .logo-text-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .nav-links {
+      display: none;
+      gap: 1.2rem;
+      font-size: 0.88rem;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.25rem 0;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(148,163,184,0.2);
+      color: var(--muted);
+    }
+
+    .nav-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+    }
+
+    @media (min-width: 840px) {
+      .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+    }
+
+    /* Hero */
+    .hero {
+      padding-top: 3.5rem;
+      padding-bottom: 3.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .hero {
+        padding-top: 4.5rem;
+        padding-bottom: 4.5rem;
+      }
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: 2.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .hero-grid {
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+        align-items: center;
+        gap: 3rem;
+      }
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      padding: 0.18rem 0.9rem 0.18rem 0.18rem;
+      background: radial-gradient(circle at left, rgba(129,140,248,0.9) 0, rgba(129,140,248,0.18) 38%, rgba(15,23,42,0.9) 100%);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #e5e7eb;
+      border: 1px solid rgba(148,163,184,0.35);
+      margin-bottom: 0.9rem;
+    }
+
+    .eyebrow-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: conic-gradient(from 200deg, #4f46e5, #f97316, #22c55e, #6366f1);
+      padding: 2px;
+    }
+
+    .eyebrow-dot-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: #020617;
+    }
+
+    .hero-title {
+      font-size: clamp(2.3rem, 3.2vw + 1.2rem, 3.4rem);
+      line-height: 1.07;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.75rem;
+    }
+
+    .hero-gradient {
+      background: linear-gradient(to right, #e5e7eb, #f97316, #a855f7);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 0.98rem;
+      color: var(--muted);
+      max-width: 32rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .hero-subnote {
+      font-size: 0.8rem;
+      color: #6b7280;
+      max-width: 26rem;
+      margin-top: 0.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 0.7rem 1.35rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: transform 0.13s ease, box-shadow 0.13s ease, background 0.13s ease, border-color 0.13s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: radial-gradient(circle at top left, #f97316, #ec4899);
+      box-shadow: 0 18px 35px rgba(248,113,113,0.55);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 42px rgba(248,113,113,0.8);
+    }
+
+    .btn-outline {
+      border-color: rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.7);
+      color: var(--muted);
+    }
+
+    .btn-outline:hover {
+      border-color: rgba(248,250,252,0.7);
+      color: var(--text);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(15,23,42,0.8);
+    }
+
+    .btn-icon {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .hero-metadata {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      font-size: 0.75rem;
+    }
+
+    .meta-pill {
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid var(--border-subtle);
+      color: var(--muted);
+    }
+
+    .meta-label {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-bottom: 0.18rem;
+    }
+
+    .meta-strong {
+      color: #e5e7eb;
+      font-weight: 500;
+    }
+
+    /* Hero visual */
+    .hero-card {
+      border-radius: 26px;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 55%, #020617 100%);
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: var(--shadow-soft);
+      padding: 1.4rem 1.4rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+    }
+
+    .hero-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.1rem;
+    }
+
+    .hero-card-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #9ca3af;
+    }
+
+    .hero-card-pill {
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.55);
+    }
+
+    .hero-card-grid {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    @media (min-width: 600px) {
+      .hero-card-grid {
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      }
+    }
+
+    .hero-vibe-tiles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+    }
+
+    .hero-vibe-tile {
+      border-radius: 18px;
+      padding: 0.7rem 0.75rem;
+      background: radial-gradient(circle at top left, rgba(248,113,113,0.3), rgba(15,23,42,0.98));
+      border: 1px solid rgba(248,113,113,0.45);
+      font-size: 0.77rem;
+      min-height: 88px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-vibe-tile:nth-child(2) {
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.35), rgba(15,23,42,0.98));
+      border-color: rgba(56,189,248,0.5);
+    }
+
+    .hero-vibe-tile:nth-child(3) {
+      background: radial-gradient(circle at top right, rgba(192,132,252,0.35), rgba(15,23,42,0.98));
+      border-color: rgba(192,132,252,0.55);
+    }
+
+    .hero-vibe-tile:nth-child(4) {
+      background: radial-gradient(circle at bottom, rgba(34,197,94,0.35), rgba(15,23,42,0.98));
+      border-color: rgba(34,197,94,0.55);
+    }
+
+    .hero-vibe-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #e5e7eb;
+      opacity: 0.9;
+    }
+
+    .hero-vibe-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .hero-vibe-meta {
+      font-size: 0.7rem;
+      color: #e5e7eb;
+      opacity: 0.9;
+    }
+
+    .hero-vibe-badge {
+      position: absolute;
+      bottom: 0.6rem;
+      right: 0.6rem;
+      font-size: 0.65rem;
+      padding: 0.18rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.55);
+      color: #e5e7eb;
+    }
+
+    .hero-metrics-card {
+      border-radius: 18px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.5);
+      padding: 0.85rem 0.9rem;
+      font-size: 0.74rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.6rem;
+    }
+
+    .metric-label {
+      color: #9ca3af;
+    }
+
+    .metric-value {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .metric-tag {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.98);
+      border: 1px solid rgba(148,163,184,0.55);
+    }
+
+    .hero-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.7rem;
+      font-size: 0.72rem;
+      color: #9ca3af;
+    }
+
+    .hero-card-footer span strong {
+      color: #e5e7eb;
+    }
+
+    /* Section titles */
+    .section-heading {
+      margin-bottom: 2rem;
+    }
+
+    .section-kicker {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #6b7280;
+      margin-bottom: 0.3rem;
+    }
+
+    .section-title {
+      font-size: 1.6rem;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.95rem;
+      color: var(--muted);
+      max-width: 32rem;
+    }
+
+    /* Two-column generic */
+    .two-col {
+      display: grid;
+      gap: 2rem;
+    }
+
+    @media (min-width: 900px) {
+      .two-col {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      }
+    }
+
+    /* Cards */
+    .card {
+      border-radius: var(--card-radius);
+      background: var(--bg-alt);
+      border: 1px solid var(--border-subtle);
+      padding: 1.25rem 1.3rem;
+      box-shadow: 0 12px 30px rgba(15,23,42,0.7);
+    }
+
+    .card + .card {
+      margin-top: 0.9rem;
+    }
+
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.4rem;
+    }
+
+    .card-title {
+      font-size: 0.96rem;
+      font-weight: 500;
+    }
+
+    .card-tag {
+      font-size: 0.7rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      color: #9ca3af;
+    }
+
+    .card-body {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+    }
+
+    .pill {
+      padding: 0.22rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.9);
+      color: #9ca3af;
+    }
+
+    /* How it works cards */
+    .how-grid {
+      display: grid;
+      gap: 1.4rem;
+      margin-top: 1.1rem;
+    }
+
+    @media (min-width: 900px) {
+      .how-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .how-card {
+      border-radius: var(--card-radius);
+      background: radial-gradient(circle at top, rgba(30,64,175,0.4), #020617 48%);
+      border: 1px solid rgba(129,140,248,0.6);
+      padding: 1rem 1rem 1rem;
+      font-size: 0.88rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .how-card:nth-child(2) {
+      background: radial-gradient(circle at top, rgba(248,113,113,0.45), #020617 52%);
+      border-color: rgba(248,113,113,0.75);
+    }
+
+    .how-card:nth-child(3) {
+      background: radial-gradient(circle at top, rgba(45,212,191,0.45), #020617 52%);
+      border-color: rgba(45,212,191,0.75);
+    }
+
+    .how-step {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #e5e7eb;
+      opacity: 0.9;
+      margin-bottom: 0.25rem;
+    }
+
+    .how-title {
+      font-size: 0.98rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+
+    .how-footer {
+      font-size: 0.75rem;
+      color: #e5e7eb;
+      opacity: 0.9;
+      margin-top: 0.45rem;
+    }
+
+    /* Gallery */
+    .gallery-header-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1.2rem;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+    }
+
+    .filter-btn {
+      border-radius: 999px;
+      padding: 0.25rem 0.7rem;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.9);
+      color: #9ca3af;
+      cursor: pointer;
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+    }
+
+    .filter-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: #fef2f2;
+      transform: translateY(-1px);
+    }
+
+    .gallery-grid {
+      display: grid;
+      gap: 1.1rem;
+    }
+
+    @media (min-width: 720px) {
+      .gallery-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 1040px) {
+      .gallery-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    .gallery-card {
+      border-radius: 18px;
+      overflow: hidden;
+      background: #020617;
+      border: 1px solid rgba(148,163,184,0.5);
+      display: flex;
+      flex-direction: column;
+      min-height: 220px;
+      transform-origin: center;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+      cursor: pointer;
+    }
+
+    .gallery-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 45px rgba(15,23,42,0.9);
+      border-color: rgba(248,113,113,0.8);
+    }
+
+    .gallery-image {
+      position: relative;
+      padding-bottom: 66%;
+      overflow: hidden;
+    }
+
+    .gallery-image img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(1.05);
+      transform: scale(1.03);
+      transition: transform 0.18s ease;
+    }
+
+    .gallery-card:hover .gallery-image img {
+      transform: scale(1.07);
+    }
+
+    .gallery-body {
+      padding: 0.65rem 0.8rem 0.7rem;
+      font-size: 0.8rem;
+    }
+
+    .gallery-vibe {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+      margin-bottom: 0.1rem;
+    }
+
+    .gallery-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      margin-bottom: 0.1rem;
+    }
+
+    .gallery-meta {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .gallery-chip {
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+    }
+
+    /* Metrics */
+    .metrics-grid {
+      display: grid;
+      gap: 1.2rem;
+    }
+
+    @media (min-width: 820px) {
+      .metrics-grid {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      }
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin-top: 0.8rem;
+    }
+
+    .kpi {
+      padding: 0.6rem 0.65rem;
+      border-radius: 14px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid rgba(148,163,184,0.6);
+      font-size: 0.8rem;
+    }
+
+    .kpi-label {
+      color: #9ca3af;
+      font-size: 0.7rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .kpi-value {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 0.7rem;
+    }
+
+    .metrics-table th,
+    .metrics-table td {
+      padding: 0.4rem 0.35rem;
+      border-bottom: 1px solid rgba(55,65,81,0.9);
+      text-align: left;
+    }
+
+    .metrics-table th {
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .metrics-table td {
+      color: #9ca3af;
+    }
+
+    .metrics-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge-pos {
+      font-size: 0.68rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(22,163,74,0.22);
+      color: #bbf7d0;
+      border: 1px solid rgba(22,163,74,0.7);
+    }
+
+    /* Research & About */
+    .split {
+      display: grid;
+      gap: 2rem;
+    }
+
+    @media (min-width: 900px) {
+      .split {
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
+      }
+    }
+
+    .bullet-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.2rem 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .bullet-list li {
+      position: relative;
+      padding-left: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .bullet-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #f97316, #a855f7);
+    }
+
+    .about-card {
+      border-radius: var(--card-radius);
+      background: var(--bg-soft);
+      border: 1px solid var(--border-subtle);
+      padding: 1rem 1.1rem;
+      font-size: 0.88rem;
+    }
+
+    .about-name {
+      font-weight: 500;
+      margin-bottom: 0.1rem;
+    }
+
+    .about-role {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 0.6rem;
+    }
+
+    .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    .text-link {
+      color: #93c5fd;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(147,197,253,0.7);
+      padding-bottom: 1px;
+    }
+
+    .text-link:hover {
+      color: #bfdbfe;
+    }
+
+    /* NEW: stats & problem / market layout */
+    .stat-grid {
+      display: grid;
+      gap: 1rem;
+      margin-top: 0.8rem;
+    }
+
+    @media (min-width: 840px) {
+      .stat-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .stat-card {
+      border-radius: 14px;
+      background: rgba(15,23,42,0.96);
+      border: 1px solid rgba(55,65,81,0.9);
+      padding: 0.8rem 0.9rem;
+      font-size: 0.82rem;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-note {
+      color: #9ca3af;
+      font-size: 0.8rem;
+    }
+
+    /* NEW: team grid */
+    .team-grid {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    @media (min-width: 520px) {
+      .team-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .team-member-name {
+      font-weight: 500;
+    }
+
+    .team-member-role {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    /* NEW: timeline / roadmap */
+    .timeline {
+      border-left: 1px dashed rgba(148,163,184,0.6);
+      padding-left: 1rem;
+      margin-top: 0.6rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .timeline-item {
+      margin-bottom: 0.6rem;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -1.1rem;
+      top: 0.3rem;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #f97316, #a855f7);
+    }
+
+    .timeline-title {
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .timeline-desc {
+      font-size: 0.84rem;
+      color: #9ca3af;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid rgba(15,23,42,0.9);
+      padding: 1.7rem 0 2.2rem;
+      margin-top: 2rem;
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <!-- NAVBAR -->
+  <header class="nav">
+    <div class="nav-inner">
+      <div class="logo">
+        <div class="logo-mark">
+          <div class="logo-mark-inner"></div>
+        </div>
+        <div>
+          <div class="logo-text-main">Vibez</div>
+          <div class="logo-text-sub">Vibe-aware travel discovery</div>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#problem">Problem</a>
+        <a href="#overview">Overview</a>
+        <a href="#market">Market</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#pipelines">Pipelines</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#results">Results</a>
+        <a href="#research">Research</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#about">Team</a>
+      </nav>
+      <div class="nav-pill">
+        <span class="nav-pill-dot"></span>
+        <span>Capstone · 2025</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">
+            <div class="eyebrow-dot">
+              <div class="eyebrow-dot-inner"></div>
+            </div>
+            Mood → Image → Destination
+          </div>
+          <h1 class="hero-title">
+            Find your next adventure by <span class="hero-gradient">vibe, not filters.</span>
+          </h1>
+          <p class="hero-subtitle">
+            Vibez fuses images, emotions, and LLM-powered retrieval so users can describe a <strong>feeling</strong> —
+            “moody neon city,” “calm pastel coast” — and instantly see <strong>vibe-aligned travel inspirations</strong>.
+          </p>
+          <div class="hero-actions">
+            <a href="#gallery" class="btn btn-primary">
+              Browse vibe gallery
+              <span class="btn-icon">↗</span>
+            </a>
+            <a href="#research" class="btn btn-outline">
+              View research &amp; system design
+            </a>
+          </div>
+          <p class="hero-subnote">
+            Designed for investors, researchers, and hiring managers who want to see a full
+            <strong>end-to-end multimodal system</strong> — from data curation and LLM fine-tuning to evaluation and UX.
+          </p>
+          <div class="hero-metadata">
+            <div class="meta-pill">
+              <div class="meta-label">Focus</div>
+              <div class="meta-strong">Multimodal RAG · LLM fine-tuning · Safety</div>
+            </div>
+            <div class="meta-pill">
+              <div class="meta-label">Stack</div>
+              <div class="meta-strong">OpenAI · Pinecone · FAISS · PyTorch · W&amp;B</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-card" aria-label="Vibez preview">
+          <div class="hero-card-header">
+            <div class="hero-card-title">Vibe-conditioned retrieval</div>
+            <div class="hero-card-pill">Live prototype snapshot</div>
+          </div>
+          <div class="hero-card-grid">
+            <div class="hero-vibe-tiles">
+              <div class="hero-vibe-tile">
+                <div class="hero-vibe-label">Vibe</div>
+                <div class="hero-vibe-name">Neon nostalgia</div>
+                <div class="hero-vibe-meta">Moody night streets · retro signs</div>
+                <div class="hero-vibe-badge">Urban · Electric</div>
+              </div>
+              <div class="hero-vibe-tile">
+                <div class="hero-vibe-label">Vibe</div>
+                <div class="hero-vibe-name">Soft dawn calm</div>
+                <div class="hero-vibe-meta">Pastel skies · reflective water</div>
+                <div class="hero-vibe-badge">Coastal · Serene</div>
+              </div>
+              <div class="hero-vibe-tile">
+                <div class="hero-vibe-label">Vibe</div>
+                <div class="hero-vibe-name">Whimsical escape</div>
+                <div class="hero-vibe-meta">Storybook streets · warm tones</div>
+                <div class="hero-vibe-badge">Playful · Charming</div>
+              </div>
+              <div class="hero-vibe-tile">
+                <div class="hero-vibe-label">Vibe</div>
+                <div class="hero-vibe-name">Majestic stillness</div>
+                <div class="hero-vibe-meta">Fog, peaks, and quiet awe</div>
+                <div class="hero-vibe-badge">Nature · Awe</div>
+              </div>
+            </div>
+            <div class="hero-metrics-card">
+              <div class="metric-row">
+                <div>
+                  <div class="metric-label">Semantic alignment</div>
+                  <div class="metric-value">+3.0 pts</div>
+                </div>
+                <span class="metric-tag">Fine-tuned vs base</span>
+              </div>
+              <div class="metric-row">
+                <div>
+                  <div class="metric-label">BoW F1 · vibe tags</div>
+                  <div class="metric-value">0.30 → 0.32</div>
+                </div>
+                <span class="metric-tag">Higher tag overlap</span>
+              </div>
+              <div class="metric-row">
+                <div>
+                  <div class="metric-label">Semantic sim</div>
+                  <div class="metric-value">0.70 → 0.72</div>
+                </div>
+                <span class="metric-tag">Stronger understanding</span>
+              </div>
+              <div class="hero-card-footer">
+                <span>Data: Unsplash Lite · GoEmotions · synthetic vibe tags</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PROBLEM -->
+    <section id="problem" class="section">
+      <div class="container two-col">
+        <div>
+          <div class="section-heading">
+            <div class="section-kicker">The gap</div>
+            <h2 class="section-title">Search is literal. Travel is emotional.</h2>
+            <p class="section-subtitle">
+              Modern travel platforms still expect users to search with <strong>keywords</strong>:
+              dates, airports, star ratings. But real trips start from a <strong>feeling</strong>:
+              “serene river at sunrise,” “vibrant boats lingering in still water that feels like a fresh start.”
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title-row">
+              <div class="card-title">Why keyword search fails modern travelers</div>
+              <span class="card-tag">Problem space</span>
+            </div>
+            <div class="card-body">
+              <ul class="bullet-list">
+                <li>
+                  <strong>Literal search, emotional intent:</strong>
+                  Rigid filters cannot interpret abstract feelings or “vibes,” causing a gap between
+                  what users type and what they actually want to experience.
+                </li>
+                <li>
+                  <strong>Visual disconnect:</strong>
+                  Image search is separated from text search – you can’t easily say
+                  “show me moody, cinematic places” and get <em>both</em> images and locations.
+                </li>
+                <li>
+                  <strong>Users run out of words:</strong>
+                  People quickly fall back to generic “Top 10” lists instead of discovering
+                  unexpected places that truly match their mood.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title-row">
+              <div class="card-title">The cost of friction</div>
+              <span class="card-tag">User pain</span>
+            </div>
+            <div class="card-body">
+              <div class="stat-grid">
+                <div class="stat-card">
+                  <div class="stat-label">Time spent searching</div>
+                  <div class="stat-value">5+ hours</div>
+                  <div class="stat-note">
+                    On average, travelers spend <strong>over five hours across 45 days</strong>
+                    just looking for inspiration before booking anything.
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">High bounce rate</div>
+                  <div class="stat-value">Early drop-off</div>
+                  <div class="stat-note">
+                    When platforms can’t respond to emotional language, users churn
+                    before they ever become serious leads.
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Inspiration gap</div>
+                  <div class="stat-value">Lost ideas</div>
+                  <div class="stat-note">
+                    The journey from a vague “feeling” to a concrete itinerary is
+                    under-served — there is no “vibe-first” discovery layer.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 1rem;">
+            <div class="card-title-row">
+              <div class="card-title">Current market gaps</div>
+            </div>
+            <div class="card-body">
+              <ul class="bullet-list">
+                <li><strong>Keyword limit:</strong> systems can’t interpret rich, poetic intent.</li>
+                <li><strong>Visual disconnect:</strong> mood-based image discovery isn’t linked to destinations.</li>
+                <li><strong>High bounce:</strong> frustration in the early discovery phase leads to abandoned sessions.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OVERVIEW -->
+    <section id="overview" class="section">
+      <div class="container">
+        <div class="two-col">
+          <div>
+            <div class="section-heading">
+              <div class="section-kicker">Project overview</div>
+              <h2 class="section-title">From mood to destination in a few words.</h2>
+              <p class="section-subtitle">
+                Vibez is a research-grade capstone project exploring how multimodal models can
+                translate <strong>subjective emotional language</strong> into concrete visual and geographic suggestions.
+                It sits at the intersection of <strong>LLM alignment, retrieval, and UX</strong>.
+              </p>
+            </div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">What Vibez does</div>
+                <span class="card-tag">Problem → System</span>
+              </div>
+              <div class="card-body">
+                <p style="margin-top: 0;">
+                  Traditional travel search expects destinations, dates, and filters. People actually start with
+                  <em>feelings</em> — “I want something cinematic and rainy,” “I need a bright, joyful escape.”
+                </p>
+                <p>
+                  Vibez lets users lead with mood. A short, poetic description is mapped to:
+                </p>
+                <ul class="bullet-list">
+                  <li>Emotion labels (GoEmotions + custom vibe taxonomy)</li>
+                  <li>Curated Unsplash imagery and color palettes</li>
+                  <li>Location metadata (city, country, coordinates)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Who this is for</div>
+                <span class="card-tag">Audience</span>
+              </div>
+              <div class="card-body">
+                <div class="pill-row">
+                  <span class="pill">Investors · early vision</span>
+                  <span class="pill">Research faculty</span>
+                  <span class="pill">Applied ML teams</span>
+                  <span class="pill">Product / UX leads</span>
+                </div>
+                <p style="margin-top: 0.6rem;">
+                  This site is a <strong>living gallery</strong> of the system:
+                  data pipeline, model choices, evaluation, and UX – all with enough detail
+                  to understand the engineering depth and research questions.
+                </p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Key capabilities</div>
+              </div>
+              <div class="card-body">
+                <div class="pill-row">
+                  <span class="pill">LLM-generated vibe tags</span>
+                  <span class="pill">Hybrid retrieval (semantic + BM25)</span>
+                  <span class="pill">Vector search over millions of images</span>
+                  <span class="pill">Safety &amp; utility evaluation</span>
+                  <span class="pill">Travel-ready location metadata</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARKET -->
+    <section id="market" class="section">
+      <div class="container two-col">
+        <div>
+          <div class="section-heading">
+            <div class="section-kicker">Market &amp; opportunity</div>
+            <h2 class="section-title">A discovery layer for an 11T USD travel economy.</h2>
+            <p class="section-subtitle">
+              Vibez doesn’t try to replace booking engines — it plugs into the
+              <strong>inspiration phase</strong>, where travelers are still exploring possibilities.
+              That early moment is under-served yet incredibly valuable.
+            </p>
+          </div>
+          <div class="card">
+            <div class="card-title-row">
+              <div class="card-title">Target users</div>
+              <span class="card-tag">Who benefits</span>
+            </div>
+            <div class="card-body">
+              <ul class="bullet-list">
+                <li>
+                  <strong>Individual travelers:</strong> people looking for unique, mood-aligned ideas
+                  instead of generic “Top 10” lists.
+                </li>
+                <li>
+                  <strong>Booking platforms:</strong> OTAs and travel brands who want a
+                  <em>“discovery layer”</em> that captivates users before they have a destination in mind.
+                </li>
+                <li>
+                  <strong>Global market:</strong> the broader, inspiration-first travel economy where
+                  emotional, personalized discovery is still nascent.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title-row">
+              <div class="card-title">Macro opportunity</div>
+              <span class="card-tag">Scale</span>
+            </div>
+            <div class="card-body">
+              <div class="stat-grid">
+                <div class="stat-card">
+                  <div class="stat-label">US travel economy</div>
+                  <div class="stat-value">~$11T</div>
+                  <div class="stat-note">
+                    Massive spend spans flights, stays, experiences, and digital planning tools.
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Vibe-first travel slice</div>
+                  <div class="stat-value">~$140B</div>
+                  <div class="stat-note">
+                    The inspiration-centric market segment Vibez aims to influence and unlock.
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">B2B opportunities</div>
+                  <div class="stat-value">Strong</div>
+                  <div class="stat-note">
+                    Discovery widgets for booking platforms, and tools to auto-tag large image
+                    libraries with <strong>vibe metadata</strong> for content curators and publishers.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 1rem;">
+            <div class="card-title-row">
+              <div class="card-title">Mission statement</div>
+            </div>
+            <div class="card-body">
+              <p style="margin-top: 0;">
+                “Find your next adventure by vibe, not by keywords—because the best trips start with a feeling, and
+                your feeling becomes the guiding light to the perfect destination.”
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div class="section-kicker">System design</div>
+          <h2 class="section-title">Under the hood: data → vibes → retrieval.</h2>
+          <p class="section-subtitle">
+            Vibez is an end-to-end pipeline: we start with images and text, enrich them with emotions, generate
+            vibe tags using LLMs, and index everything into a vector DB for fast, vibe-aware search.
+          </p>
+        </div>
+
+        <div class="how-grid">
+          <div class="how-card">
+            <div class="how-step">1 · Curated multimodal data</div>
+            <div class="how-title">Unsplash Lite + GoEmotions</div>
+            <p>
+              We collect <strong>curated travel &amp; lifestyle images</strong> with captions, colors, and metadata
+              (city, country, coordinates) and align them with GoEmotions-style labels and a custom
+              <strong>vibe taxonomy</strong> (e.g., “majestic,” “whimsical,” “intimate,” “electric”).
+            </p>
+            <div class="how-footer">
+              Features: AI image descriptions · keywords · color palettes · emotion labels.
+            </div>
+          </div>
+
+          <div class="how-card">
+            <div class="how-step">2 · LLM-driven vibe tagging</div>
+            <div class="how-title">GPT-4o + fine-tuned Mistral</div>
+            <p>
+              GPT-4o generates <strong>synthetic vibe annotations</strong> from combined visual and textual context.
+              These are used to fine-tune open-source models (e.g., Mistral, Gemma) to produce
+              <strong>consistent vibe tags</strong> at scale, both in training and inference.
+            </p>
+            <div class="how-footer">
+              Goal: stable tags across prompts, templates, and LoRA checkpoints.
+            </div>
+          </div>
+
+          <div class="how-card">
+            <div class="how-step">3 · Vibe-aware retrieval</div>
+            <div class="how-title">Embeddings + vector DB</div>
+            <p>
+              We embed vibe tags and descriptions with <strong>OpenAI embeddings</strong> and index them in
+              <strong>Pinecone / FAISS</strong>. A user query is embedded, matched against the index, and
+              enriched with location metadata to surface <strong>safe, diverse, and on-vibe results</strong>.
+            </p>
+            <div class="how-footer">
+              Stack: semantic similarity, re-ranking, safety filters, content diversity.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section id="architecture" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div class="section-kicker">Technical overview</div>
+          <h2 class="section-title">Microservices architecture on AWS.</h2>
+          <p class="section-subtitle">
+            The production-ready prototype follows a clean separation of concerns: UI, API, model layer,
+            and vector search — all orchestrated on AWS with observability and security in mind.
+          </p>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">System architecture</div>
+                <span class="card-tag">High level</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li><strong>Frontend:</strong> a web interface where users enter poetic, vibe-rich queries.</li>
+                  <li><strong>Backend API (FastAPI):</strong> routes requests, orchestrates retrieval,
+                    and joins results from multiple pipelines.</li>
+                  <li><strong>Model layer:</strong> hosted LLMs (OpenAI, fine-tuned Mistral/Gemma) serve
+                    vibe tagging, synthetic data generation, and trip planning.</li>
+                  <li><strong>Vector DB:</strong> Pinecone as the primary semantic search engine,
+                    with FAISS used in experimentation and offline evaluation.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Key infrastructure components</div>
+                <span class="card-tag">AWS layer</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li><strong>EC2 compute:</strong> GPU instances dedicated to model pre-loading and low-latency inference.</li>
+                  <li><strong>S3 + ECR:</strong> S3 stores curated datasets and image artifacts; ECR manages container images.</li>
+                  <li><strong>ALB + ACM:</strong> Application Load Balancer and TLS certificates provide secure,
+                    scalable external access.</li>
+                  <li><strong>CloudWatch:</strong> metrics and logs for monitoring latency, errors, and usage patterns.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 0.9rem;">
+              <div class="card-title-row">
+                <div class="card-title">External service layer</div>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li><strong>OpenAI:</strong> synthetic vibe generation, safety classification, and trip planning.</li>
+                  <li><strong>Pinecone:</strong> scalable vector index for image + vibe embeddings.</li>
+                  <li><strong>Unsplash API:</strong> runtime image and location enrichment for retrieved records.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIPELINES -->
+    <section id="pipelines" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div class="section-kicker">Application overview</div>
+          <h2 class="section-title">Four pipelines working together.</h2>
+          <p class="section-subtitle">
+            Vibez is not a single model call. It is a collection of interconnected pipelines that take a user
+            from a raw vibe query to images, locations, and a draft trip plan.
+          </p>
+        </div>
+
+        <div class="two-col" style="margin-bottom: 2rem;">
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Input data sources</div>
+                <span class="card-tag">Rich &amp; diverse</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>
+                    <strong>Unsplash Lite (25k+ photos):</strong> high-quality travel and lifestyle images,
+                    captions, keywords, and extracted color palettes.
+                  </li>
+                  <li>
+                    <strong>GoEmotions:</strong> fine-grained emotion labels used to ground the
+                    custom vibe taxonomy in human affect.
+                  </li>
+                  <li>
+                    <strong>Custom vibe taxonomy:</strong> a structured set of vibe words
+                    (e.g., “majestic,” “intimate,” “electric”) used consistently across tagging and retrieval.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 0.9rem;">
+              <div class="card-title-row">
+                <div class="card-title">EDA highlights</div>
+                <span class="card-tag">Curated data</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li><strong>Emotion patterns:</strong> identified dominant emotions and common co-occurrence pairs.</li>
+                  <li><strong>Color–emotion link:</strong> analyzed how warm palettes correlate with positive emotions.</li>
+                  <li><strong>Positive leaning:</strong> confirmed the dataset skews toward bright, optimistic feelings
+                    — ideal for travel inspiration.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Pipeline 1 · Data curation &amp; retrieval</div>
+                <span class="card-tag">Images → vibes</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>Combine image features (captions, keywords, colors) with emotional labels.</li>
+                  <li>Use GPT-4o-mini with a carefully tuned prompt to <strong>synthesize new vibe annotations</strong>.</li>
+                  <li>Embed all enriched records into Pinecone to enable instant “emotional search.”</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 0.9rem;">
+              <div class="card-title-row">
+                <div class="card-title">Pipeline 2 · Image &amp; location search</div>
+                <span class="card-tag">Vector DB → Unsplash</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>Embed the user’s vibe query and retrieve candidates from the vector DB.</li>
+                  <li>Call the Unsplash Image API to fetch high-resolution images.</li>
+                  <li>Use the Unsplash Location API to stitch in city, country, and coordinates,
+                    turning each image into a travel-ready suggestion.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Pipeline 3 · Trip planner</div>
+                <span class="card-tag">LLM itinerary</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>Take keywords, vibe tags, and selected locations as structured context.</li>
+                  <li>Use ChatGPT with a <strong>fine-tuned planner prompt</strong> to generate day-by-day ideas.</li>
+                  <li>Return concise itineraries that stay on-vibe while remaining realistic and actionable.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Pipeline 4 · Vibe tag generator &amp; aggregator</div>
+                <span class="card-tag">Fine-tuned LLM</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>
+                    Fine-tune Mistral / Gemma using <strong>supervised fine-tuning (SFT)</strong> on curated and
+                    synthetic vibe-tag pairs.
+                  </li>
+                  <li>
+                    Generate consistent vibe tags at inference time, then aggregate them with images,
+                    locations, and planner output.
+                  </li>
+                  <li>
+                    Feed the aggregated representation back into the UX so users see a <em>coherent vibe story</em>
+                    for each suggestion.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section id="gallery" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div class="section-kicker">Gallery</div>
+          <h2 class="section-title">Sample vibe outputs from the prototype.</h2>
+          <p class="section-subtitle">
+            A small, representative slice of the experience.
+            Each tile shows the <strong>vibe label</strong>, a short description, and
+            <strong>location hints</strong>. In the live system, these come from real retrieval calls.
+          </p>
+        </div>
+
+        <div class="gallery-header-row">
+          <div>
+            <div class="meta-label">Filter by mood</div>
+          </div>
+          <div class="filter-row">
+            <button class="filter-btn active" data-filter="all">All vibes</button>
+            <button class="filter-btn" data-filter="serene">Serene</button>
+            <button class="filter-btn" data-filter="electric">Electric</button>
+            <button class="filter-btn" data-filter="whimsical">Whimsical</button>
+            <button class="filter-btn" data-filter="moody">Moody</button>
+            <button class="filter-btn" data-filter="minimal">Minimal</button>
+          </div>
+        </div>
+
+        <div class="gallery-grid" aria-label="Vibe gallery">
+          <!-- Card 1 -->
+          <article class="gallery-card" data-vibe="electric moody">
+            <div class="gallery-image">
+              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80"
+                   alt="Moody neon city street at night" />
+            </div>
+            <div class="gallery-body">
+              <div class="gallery-vibe">Neon nostalgia</div>
+              <div class="gallery-title">Rain-glossed alleys and electric signs</div>
+              <div class="gallery-meta">
+                <span>Urban · Night · Tokyo-like</span>
+                <span class="gallery-chip">Electric</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="gallery-card" data-vibe="serene minimal">
+            <div class="gallery-image">
+              <img src="https://images.unsplash.com/photo-1500534314211-0a24cd03f2c0?auto=format&fit=crop&w=900&q=80"
+                   alt="Soft sunrise over calm ocean" />
+            </div>
+            <div class="gallery-body">
+              <div class="gallery-vibe">Soft dawn calm</div>
+              <div class="gallery-title">Pastel horizon and glassy water</div>
+              <div class="gallery-meta">
+                <span>Coastal · Sunrise</span>
+                <span class="gallery-chip">Serene</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 3 -->
+          <article class="gallery-card" data-vibe="whimsical">
+            <div class="gallery-image">
+              <img src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=900&q=80"
+                   alt="Colorful European street" />
+            </div>
+            <div class="gallery-body">
+              <div class="gallery-vibe">Storybook stroll</div>
+              <div class="gallery-title">Warm facades and winding alleys</div>
+              <div class="gallery-meta">
+                <span>Old town · Europe</span>
+                <span class="gallery-chip">Whimsical</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 4 -->
+          <article class="gallery-card" data-vibe="moody serene">
+            <div class="gallery-image">
+              <img src="https://images.unsplash.com/photo-1500534314209-a26db0f5c9dc?auto=format&fit=crop&w=900&q=80"
+                   alt="Foggy mountains with muted tones" />
+            </div>
+            <div class="gallery-body">
+              <div class="gallery-vibe">Majestic stillness</div>
+              <div class="gallery-title">Low clouds, deep greens, quiet awe</div>
+              <div class="gallery-meta">
+                <span>Alpine · Fog</span>
+                <span class="gallery-chip">Moody</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 5 -->
+          <article class="gallery-card" data-vibe="minimal serene">
+            <div class="gallery-image">
+              <img src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=900&q=80"
+                   alt="Minimalist beach with a single figure" />
+            </div>
+            <div class="gallery-body">
+              <div class="gallery-vibe">Quiet horizon</div>
+              <div class="gallery-title">One figure, endless blue</div>
+              <div class="gallery-meta">
+                <span>Minimal · Coastal</span>
+                <span class="gallery-chip">Minimal</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 6 -->
+          <article class="gallery-card" data-vibe="electric whimsical">
+            <div class="gallery-image">
+              <img src="https://images.unsplash.com/photo-1500534318100-bbd4c3b1735a?auto=format&fit=crop&w=900&q=80"
+                   alt="Amusement park at night with bright lights" />
+            </div>
+            <div class="gallery-body">
+              <div class="gallery-vibe">Playful glow</div>
+              <div class="gallery-title">Ferris wheels and candy lights</div>
+              <div class="gallery-meta">
+                <span>Amusement · Night</span>
+                <span class="gallery-chip">Electric</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 7 -->
+          <article class="gallery-card" data-vibe="serene whimsical">
+            <div class="gallery-image">
+              <img src="https://images.unsplash.com/photo-1500534318101-ffa3beaf74c9?auto=format&fit=crop&w=900&q=80"
+                   alt="Small cabin in the woods at blue hour" />
+            </div>
+            <div class="gallery-body">
+              <div class="gallery-vibe">Cozy hideaway</div>
+              <div class="gallery-title">Warm window in a cool forest</div>
+              <div class="gallery-meta">
+                <span>Cabin · Forest</span>
+                <span class="gallery-chip">Serene</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 8 -->
+          <article class="gallery-card" data-vibe="moody minimal">
+            <div class="gallery-image">
+              <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=900&q=80"
+                   alt="Lonely road through dark landscape" />
+            </div>
+            <div class="gallery-body">
+              <div class="gallery-vibe">Cinematic solitude</div>
+              <div class="gallery-title">One road, no clear destination</div>
+              <div class="gallery-meta">
+                <span>Road trip · Overcast</span>
+                <span class="gallery-chip">Moody</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="results" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div class="section-kicker">Model &amp; evaluation</div>
+          <h2 class="section-title">Does fine-tuning actually help? Yes.</h2>
+          <p class="section-subtitle">
+            We treat vibe tags like a multi-label classification problem over a custom taxonomy.
+            Below is a simplified view of the evaluation we ran on held-out data, along with how we
+            validate the experience end-to-end.
+          </p>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="card">
+            <div class="card-title-row">
+              <div class="card-title">Quantitative lift</div>
+              <span class="card-tag">Base vs fine-tuned</span>
+            </div>
+            <div class="card-body">
+              <p style="margin-top: 0;">
+                We compare a base instruction model with a vibe-fine-tuned checkpoint using:
+              </p>
+              <ul class="bullet-list">
+                <li>Bag-of-words precision / recall / F1 over gold vibe tags</li>
+                <li>TF-IDF cosine between predicted and reference tags</li>
+                <li>Embedding-based semantic similarity for robustness</li>
+              </ul>
+
+              <div class="kpi-row">
+                <div class="kpi">
+                  <div class="kpi-label">Macro BoW F1</div>
+                  <div class="kpi-value">+0.015</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">TF-IDF cosine</div>
+                  <div class="kpi-value">+0.04</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Semantic sim</div>
+                  <div class="kpi-value">+0.02</div>
+                </div>
+              </div>
+
+              <p style="margin-top: 0.7rem;">
+                Fine-tuning transforms Mistral from a generalist into a <strong>specialized vibe engine</strong>,
+                delivering double-digit relative gains in accuracy while significantly reducing noisy tags.
+              </p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title-row">
+              <div class="card-title">Example metrics table</div>
+              <span class="card-tag">Illustrative</span>
+            </div>
+            <div class="card-body">
+              <table class="metrics-table" aria-label="Model comparison">
+                <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Base</th>
+                  <th>Fine-tuned</th>
+                  <th>Δ</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>Macro BoW F1</td>
+                  <td>0.30</td>
+                  <td>0.32</td>
+                  <td><span class="badge-pos">+0.02</span></td>
+                </tr>
+                <tr>
+                  <td>TF-IDF cosine</td>
+                  <td>0.23</td>
+                  <td>0.28</td>
+                  <td><span class="badge-pos">+0.05</span></td>
+                </tr>
+                <tr>
+                  <td>Semantic similarity</td>
+                  <td>0.70</td>
+                  <td>0.72</td>
+                  <td><span class="badge-pos">+0.02</span></td>
+                </tr>
+                </tbody>
+              </table>
+              <p style="margin-top: 0.7rem;">
+                We also track <strong>safety vs utility</strong> using a synthetic adversarial set:
+                the model must refuse risky commands while still producing rich, useful vibe tags on benign input.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional evaluation details -->
+        <div class="two-col" style="margin-top: 2rem;">
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Mistral vs Gemma</div>
+                <span class="card-tag">Model comparison</span>
+              </div>
+              <div class="card-body">
+                <p style="margin-top: 0;">
+                  We fine-tuned both Mistral and Gemma variants on the same curated + synthetic vibe dataset.
+                  The <strong>fine-tuned Mistral model</strong> consistently outperformed Gemma across:
+                </p>
+                <ul class="bullet-list">
+                  <li>
+                    <strong>Semantic understanding:</strong> achieving a semantic similarity score of
+                    approximately <strong>72.3%</strong> on held-out evaluation.
+                  </li>
+                  <li>
+                    <strong>F1 scores:</strong> over <strong>60% higher</strong> than Gemma on multi-label vibe tagging,
+                    meaning fewer missed or spurious vibes per example.
+                  </li>
+                  <li>
+                    <strong>Lexical similarity:</strong> closer overlap with human-written vibe tags.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Human-centric evaluation</div>
+                <span class="card-tag">Application &amp; users</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>
+                    <strong>Query → tags → images:</strong> internal reviewers scored alignment between user query,
+                    generated vibe tags, and retrieved images.
+                    Results show <strong>~97% query alignment</strong> and <strong>~90% aesthetic quality</strong>,
+                    indicating that the system favors high-impact visuals over literal keyword matches.
+                  </li>
+                  <li>
+                    <strong>User survey (N=22):</strong> more than 60% of respondents were Gen Z.
+                    Users highlighted how Vibez surfaced places they “wouldn’t have normally thought of”
+                    and how visuals helped them understand the mood instantly.
+                  </li>
+                  <li>
+                    <strong>Predictability &amp; repeatability:</strong> by tying manual ratings to automatic metrics,
+                    we can track and improve user satisfaction over time.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESEARCH & ABOUT -->
+    <section id="research" class="section">
+      <div class="container">
+        <div class="split">
+          <div>
+            <div class="section-heading">
+              <div class="section-kicker">Research framing</div>
+              <h2 class="section-title">What Vibez explores as a research problem.</h2>
+              <p class="section-subtitle">
+                Beyond “nice UI,” Vibez asks: how do we make LLMs and retrieval systems
+                <strong>understand, represent, and search for vibes</strong> in a stable, safe way?
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Core research questions</div>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>How do we <strong>encode subjective emotional language</strong> as machine-actionable labels?</li>
+                  <li>Can a fine-tuned LLM generate vibe tags that are <strong>consistent across prompts and templates</strong>?</li>
+                  <li>How do we align <strong>vector search, image retrieval, and safety filters</strong> so users get
+                    accurate, diverse, and safe results?
+                  </li>
+                  <li>What is the trade-off between <strong>precision</strong> (exact vibe) and
+                    <strong>serendipity</strong> (adjacent vibes)?
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 0.9rem;">
+              <div class="card-title-row">
+                <div class="card-title">Technical challenges</div>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>
+                    <strong>Limited emotional depth:</strong> existing datasets lack dense, high-quality labels
+                    for nuanced vibes, forcing us to blend real and synthetic data.
+                  </li>
+                  <li>
+                    <strong>Unstable vibe tags:</strong> LLM outputs can vary across prompts, templates, and
+                    LoRA/CUDA settings between training and inference.
+                  </li>
+                  <li>
+                    <strong>Language–image semantic gap:</strong> even with good text embeddings, image retrieval
+                    can drift without careful embedding alignment and safety checks.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 0.9rem;">
+              <div class="card-title-row">
+                <div class="card-title">Key innovations</div>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>
+                    <strong>Novel vibe-based search engine:</strong> a structured <em>Vibe Taxonomy</em> translates
+                    emotional intent into embeddings, vector search, and image retrieval.
+                  </li>
+                  <li>
+                    <strong>Synthetic data advantage:</strong> OpenAI-powered synthetic “vibe pairs”
+                    (descriptions + tags) dramatically expand emotional coverage and robustness.
+                  </li>
+                  <li>
+                    <strong>Fine-tuned models on custom taxonomy:</strong> QLoRA and custom prompting pipelines
+                    produce stable, emotionally aligned vibe tags specialized to travel discovery.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 0.9rem;">
+              <div class="card-title-row">
+                <div class="card-title">Artifacts available</div>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>System diagrams: data pipeline, retrieval stack, safety loop</li>
+                  <li>Evaluation notebooks (BoW, TF-IDF, semantic similarity)</li>
+                  <li>Prompt templates and vibe taxonomy definition</li>
+                  <li>W&amp;B runs for fine-tuning and experiments</li>
+                </ul>
+                <div class="link-row">
+                  <!-- Replace '#' with real links when ready -->
+                  <a class="text-link" href="#" target="_blank" rel="noreferrer">Request full deck</a>
+                  <a class="text-link" href="#" target="_blank" rel="noreferrer">View GitHub repo</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside id="about">
+            <div class="section-heading" style="margin-bottom: 1rem;">
+              <div class="section-kicker">Team</div>
+              <h2 class="section-title" style="font-size: 1.35rem;">Who built this.</h2>
+            </div>
+
+            <div class="about-card">
+              <div class="about-name">Core team</div>
+              <p class="about-role">
+                A multidisciplinary group experienced in AI/ML full-stack development, working together
+                to solve the “vibe search” problem.
+              </p>
+              <div class="team-grid">
+                <div>
+                  <div class="team-member-name">Divya Menghani</div>
+                  <div class="team-member-role">Data engineering, EDA &amp; evaluation framework</div>
+                </div>
+                <div>
+                  <div class="team-member-name">Guru Chandra Mahesh</div>
+                  <div class="team-member-role">Lead architect, LLM fine-tuning</div>
+                </div>
+                <div>
+                  <div class="team-member-name">Ravi Siddappa</div>
+                  <div class="team-member-role">Project management, testing &amp; benchmarking</div>
+                </div>
+                <div>
+                  <div class="team-member-name">Smitha Menon</div>
+                  <div class="team-member-role">ML research, LLM fine-tuning &amp; MLOps</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="about-card" style="margin-top: 0.9rem;">
+              <div class="about-name">Lead &amp; primary contact</div>
+              <div class="about-role">Gurucharan Chandramhesh · UC Berkeley MIDS</div>
+              <p style="margin-top: 0;">
+                Lead engineer and researcher responsible for end-to-end system design, fine-tuned models,
+                and evaluation strategy.
+              </p>
+              <div class="link-row">
+                <!-- Replace with your actual links -->
+                <a class="text-link" href="#" target="_blank" rel="noreferrer">LinkedIn</a>
+                <a class="text-link" href="#" target="_blank" rel="noreferrer">GitHub</a>
+                <a class="text-link" href="#" target="_blank" rel="noreferrer">Email</a>
+              </div>
+            </div>
+
+            <div class="about-card" style="margin-top: 0.9rem;">
+              <div class="about-name">Acknowledgements</div>
+              <p style="margin-top: 0.2rem;">
+                Thanks to UC Berkeley faculty, classmates, and early testers who helped stress-test prompts,
+                vibe taxonomies, and system design – and to the creators behind Unsplash for inspiring imagery.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROADMAP -->
+    <section id="roadmap" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div class="section-kicker">Future roadmap</div>
+          <h2 class="section-title">Where Vibez goes next.</h2>
+          <p class="section-subtitle">
+            The current prototype validates that “vibe-first” discovery works. The next steps
+            focus on scaling, integrations, and turning this into a product that can live in
+            real travel ecosystems.
+          </p>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">Product &amp; platform</div>
+                <span class="card-tag">Next steps</span>
+              </div>
+              <div class="card-body">
+                <div class="timeline">
+                  <div class="timeline-item">
+                    <div class="timeline-title">Deeper personalization</div>
+                    <div class="timeline-desc">
+                      Incorporate user profiles, past trips, and saved vibes to personalize retrieval
+                      while maintaining safety and diversity.
+                    </div>
+                  </div>
+                  <div class="timeline-item">
+                    <div class="timeline-title">Proximity &amp; constraints</div>
+                    <div class="timeline-desc">
+                      Add filters for budget, distance, and trip length — responding to early user requests
+                      like “filter by places near me.”
+                    </div>
+                  </div>
+                  <div class="timeline-item">
+                    <div class="timeline-title">Real-time inventory</div>
+                    <div class="timeline-desc">
+                      Connect to booking engines and inventory APIs so vibe search flows directly into
+                      bookable experiences.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-title-row">
+                <div class="card-title">B2B integrations</div>
+                <span class="card-tag">Discovery layer</span>
+              </div>
+              <div class="card-body">
+                <ul class="bullet-list">
+                  <li>
+                    <strong>Booking platforms:</strong> embed Vibez as a “mood-first search” widget
+                    to capture users at the very top of the funnel.
+                  </li>
+                  <li>
+                    <strong>Content curators:</strong> provide tools for travel blogs and magazines
+                    to automatically tag and organize their image libraries with vibe metadata.
+                  </li>
+                  <li>
+                    <strong>APIs &amp; SDKs:</strong> expose the vibe tagging and retrieval pipeline
+                    so other teams can build creative experiences on top of the engine.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 0.9rem;">
+              <div class="card-title-row">
+                <div class="card-title">Vision</div>
+              </div>
+              <div class="card-body">
+                <p style="margin-top: 0;">
+                  Vibez aims to become the default way people explore trips when they only know
+                  <em>how they want to feel</em>, not where they want to go — a new, emotionally intelligent
+                  discovery layer for the travel stack.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div>© <span id="year"></span> Vibez · Built as a UC Berkeley MIDS capstone project.</div>
+      <div class="footer-links">
+        <span>Multimodal · RAG · Safety · Vibes</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Simple gallery filtering
+  const filterButtons = document.querySelectorAll(".filter-btn");
+  const cards = document.querySelectorAll(".gallery-card");
+
+  filterButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const filter = btn.dataset.filter;
+      filterButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      cards.forEach(card => {
+        if (filter === "all") {
+          card.style.display = "";
+          return;
+        }
+        const vibes = (card.dataset.vibe || "").toLowerCase();
+        card.style.display = vibes.includes(filter.toLowerCase()) ? "" : "none";
+      });
+    });
+  });
+
+  // Dynamic year in footer
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
